@@ -1,6 +1,6 @@
 import os
 from sys import byteorder
-from tkinter.filedialog import askdirectory, askopenfilename,asksaveasfilename
+from tkinter.filedialog import askdirectory, askopenfilename, askopenfilenames, asksaveasfilename
 from shutil import copy2
 import csv
 from Rename import *
@@ -12,59 +12,61 @@ from lzss3 import decompress_raw_lzss11
 def flibi(bytedata):
     return(int.from_bytes(bytedata, "little"))
 
-def decompress_file(filepath, altpath = ''):
-    with open(filepath, 'r+b') as source_file:
-        source_data = source_file.read()
+def decompress_file(filepath_set, altpath = ''):
+    for filepath in filepath_set:
+        with open(filepath, 'r+b') as source_file:
+            source_data = source_file.read()
 
-        if(source_data[0] != 0x11):
-            if(altpath == ''):
-                print(f'{filepath} is not compressed!\n')
-                return
+            if(source_data[0] != 0x11):
+                if(altpath == ''):
+                    print(f'{filepath} is not compressed!\n')
+                    return
+                else:
+                    if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
+                        os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
+                    with open(altpath, 'w+b') as g:
+                        g.write(bytes(source_data))
+                        g.truncate()
             else:
-                if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
-                    os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
-                with open(altpath, 'w+b') as g:
-                    g.write(bytes(source_data))
-                    g.truncate()
-        else:
-            source_file.seek(0)
-            print(f'\tDecompressing {filepath}\n')
+                source_file.seek(0)
+                print(f'\tDecompressing {filepath}\n')
 
-            if(altpath == ''):
-                source_file.write(bytes(decompress_bytes(source_data)))
-                source_file.truncate()
-            else:
-                if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
-                    os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
-                with open(altpath, 'w+b') as g:
-                    g.write(bytes(decompress_bytes(source_data)))
-                    g.truncate()
+                if(altpath == ''):
+                    source_file.write(bytes(decompress_bytes(source_data)))
+                    source_file.truncate()
+                else:
+                    if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
+                        os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
+                    with open(altpath, 'w+b') as g:
+                        g.write(bytes(decompress_bytes(source_data)))
+                        g.truncate()
 
-def compress_file(filepath, altpath = ''):
-    with open(filepath, 'r+b') as source_file:
-        source_data = source_file.read()
+def compress_file(filepath_set, altpath = ''):
+    for filepath in filepath_set:
+        with open(filepath, 'r+b') as source_file:
+            source_data = source_file.read()
 
-        if(source_data[0] == 0x11):
-            if(altpath == ''):
-                print(f'{filepath} is already compressed!\n')
-                return
+            if(source_data[0] == 0x11):
+                if(altpath == ''):
+                    print(f'{filepath} is already compressed!\n')
+                    return
+                else:
+                    if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
+                        os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
+                    with open(altpath, 'w+b') as g:
+                        g.write(bytes(source_data))
+                        g.truncate()
             else:
-                if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
-                    os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
-                with open(altpath, 'w+b') as g:
-                    g.write(bytes(source_data))
-                    g.truncate()
-        else:
-            source_file.seek(0)
-            print(f'\tCompressing {filepath}\n')
-            if(altpath == ''):
-                source_file.write(bytes(compress_raw_lzss11(source_data)))
-                source_file.truncate()
-            else:
-                if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
-                    os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
-                with open(altpath, 'w+b') as g:
-                    g.write(bytes(compress_raw_lzss11(source_data)))
+                source_file.seek(0)
+                print(f'\tCompressing {filepath}\n')
+                if(altpath == ''):
+                    source_file.write(bytes(compress_raw_lzss11(source_data)))
+                    source_file.truncate()
+                else:
+                    if(not os.path.isdir(os.path.abspath(os.path.join(altpath, os.pardir)))):
+                        os.mkdir(os.path.abspath(os.path.join(altpath, os.pardir)))
+                    with open(altpath, 'w+b') as g:
+                        g.write(bytes(compress_raw_lzss11(source_data)))
 
 
 def decompress_folder(folder_path):
@@ -279,7 +281,10 @@ def build_garc(folder_path):
         offset = 0
         biggest_size = 0
         biggest_size_padding = 0
-        for filename in os.listdir(folder_path):
+        for countcount, filename in enumerate(os.listdir(folder_path)):
+
+            if(countcount % (file_count//20) == 0):
+                print(f'{countcount*100//file_count}%')
 
             #don't do anything wih subfolders
             if(os.path.isdir(filename)):
@@ -362,9 +367,9 @@ def main():
                 case 'c':
                     compress_folder(askdirectory(title = 'Select folder to compress'))
                 case 'df':
-                    decompress_file(askopenfilename(title = 'Select file to decompress'))
+                    decompress_file(askopenfilenames(title = 'Select file(s) to decompress'))
                 case 'cf':
-                    compress_file(askopenfilename(title = 'Select file to compress'))
+                    compress_file(askopenfilenames(title = 'Select file(s) to compress'))
                 case 'q':
                     break
 

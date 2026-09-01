@@ -2,3 +2,15 @@
 output/GARC__De_Extractor.exe
 compile.bat
 compile.json
+build/GARC__De_Extractor/xref-GARC__De_Extractor.html
+build/GARC__De_Extractor/warn-GARC__De_Extractor.txt
+build/GARC__De_Extractor/PYZ-00.toc
+*.pyz
+*.toc
+*.pyc
+*.pkg
+*.zip
+*.exe
+*.spec
+*.vsidx
+*.vsidx
