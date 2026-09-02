@@ -14,3 +14,7 @@ build/GARC__De_Extractor/PYZ-00.toc
 *.spec
 *.vsidx
 *.vsidx
+*.json
+*.json
+.vs/GARC (De)Extractor/v17/.suo
+.vs/GARC (De)Extractor/FileContentIndex/05e98953-1762-48b5-be1c-f841ce962990.vsidx
